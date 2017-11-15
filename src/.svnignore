@@ -1,0 +1,3 @@
+build
+cp*.jar
+svnIgnore.command

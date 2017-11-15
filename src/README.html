@@ -1,0 +1,226 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+	<title>Concurrent Programming</title>
+	<link href="content.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<div id="header">
+	<h1>CP Lab 2</h1>
+</div>
+
+<div id="breadcrumb">
+	<a href="http://www.unibe.ch/">unibe</a>
+	<a href="http://www.iam.unibe.ch/en">iam</a>
+	<a href="http://www.iam.unibe.ch/~scg/">scg</a>
+	<a href="http://www.iam.unibe.ch/~scg/teaching.html">teaching</a>
+	<a href="http://www.iam.unibe.ch/~scg/Teaching/CP/index.html">cp</a>
+	<a href="readme.html">lab2</a>
+</div>
+
+<div id="menu">
+</div>
+
+<div id="content">
+
+<h1>Lab 2: Liveness and Fairness (5 Bonus Points)</h1>
+
+<a name="INSTRUCTIONS"><h2>Instructions</h2></a>
+
+<p>Each exercise consists of a Java application that illustrates some concurrency problems.
+You must figure out what is &quot;broken&quot; and fix it.
+</p>
+
+<ol>
+	<li value="5"><a href="#NESTEDMONITOR">Nested Monitor</a></li>
+	<li><a href="#READERSWRITERS">Readers and Writers</a></li>
+	<li><a href="#BRIDGE">Single lane bridge</a></li>
+	<li><a href="#GOLFCLUB">Golf club</a></li>
+</ol>
+
+<p>You should work on the problems in teams of two.
+The source code can by loaded into Eclipse.
+There is an ant build file which you may use and adapt.
+Running ant will create and launch a single jar file consisting of
+a Launcher for the four exercises.
+Alternatively, you may use the built-in Java builder of Eclipse and run the exercises separately (each exercise has its own main method).</p>
+
+<p>Most of the exercises additionally make use of the files in the directories
+<a href="resources/">resources</a> (containing sound clips and images) and
+<a href="support/">support</a> (containing some reusable components).
+You do not have to touch these files (except the <code>Launcher</code>), but you will need to include these files to
+build a complete JAR file!</p>
+
+<!-- NESTEDMONITOR --------------------------------------------- -->
+<a name="NESTEDMONITOR">
+<h1>Exercise 5: Nested Monitor (1 Bonus Point)</h1>
+</a>
+
+<p>The class <code>buffer/NestedMonitor</code> presents a view of a bounded
+buffer connected to a producer and a consumer. It uses semaphores to protect
+the shared resource.  Unfortunately, if either the producer or the consumer gets
+ahead of its partner, the whole buffer will deadlock.  To see see this, start
+them both (click on the two <b>Run</b> buttons) and then speed up one or the
+other by moving the slider to the left. You will eventually see something like this:</p>
+
+<table><tr><td>
+<img src="screenshots/nestedMonitor.png"/>
+</td></tr></table>
+
+<p>Modify the application such in a way that the deadlock does not occur anymore.</p>
+
+<p><i>Hint: (highlight the text in the box to make it visible)</i></p>
+<table><tr><td><p><font color="white">
+Find and eliminate the nested monitor.
+Check the classes <code>BoundedBuffer</code>, <code>DisplayBuffer</code>,
+and <code> Semaphore</code>.
+</font></p></td></tr></table>
+
+<!-- READERSWRITERS --------------------------------------------- -->
+<a name="READERSWRITERS">
+<h1>Exercise 6: Readers and Writers (1 Bonus Point)</h1>
+</a>
+
+<p><code>ReadersWriters</code> allows Readers concurrent access to a resource while 
+restricting Writers to exclusive access. The critical section 
+is depicted by a light blue (cyan) arc segment.
+In addition to running and pausing the Readers and Writers, and changing their
+speed, you can change the size of their critical section by <i>grabbing</i> and
+moving the start or end of the section:</p>
+
+<table><tr><td>
+<img src="screenshots/grab.gif"/>
+</td></tr></table>
+
+<p>
+It is possible by starting the 
+Reader threads at different times to generate a scenario in which Writer threads 
+are locked out. Try this, and see if you can reproduce the lockout.</p>
+
+<table><tr><td>
+<img src="screenshots/readwrite.png"/>
+</td></tr></table>
+
+<p>Your job is to implement synchronization policies that are fair to Writers.
+A policy is a class that implements the interface
+<code>ReadWritePolicy</code>.  The main class (<code>SafeReadersWriters</code>) 
+instantiates a <code>SafeReadWritePolicy</code>. 
+It uses a hook method <code>SafeReadersWriters.makePolicy()</code> 
+to instantiate the specific reader writer policy. You need to overwrite 
+this method in subclasses of <code>SafeReadersWriters</code>.<p>
+
+<p>You should do the following:</p>
+<ol>
+<li>Define a policy <code>WritersPriorityPolicy</code> as a subclass
+of the existing policy class <code>SafeReadWritePolicy</code>.
+This policy gives priority to writers by not allowing
+new readers to enter when a writer is waiting. </li>
+
+<li>However the writer priority policy makes it possible for 
+readers to get starved out! Introduce a fair solution by subclassing your class 
+<code>WritersPriorityPolicy</code> to <code>FairReadWritePolicy</code>.
+<br><i>Hint:</i>
+<table><tr><td><p><font color="white">
+Consider introducing a flag that keeps track of whether Readers or
+Writers have priority.
+</font></p></td></tr></table>
+</li>
+</ol>
+
+<p>NB: you can add two new buttons to the <code>Launcher</code> for starting the
+application with different policies. (The code is already there, just uncomment it.)</p>
+
+<!-- BRIDGE --------------------------------------------- -->
+<a name="BRIDGE">
+<h1>Exercise 7: Single Lane Bridge (2 Bonus Points)</h1>
+</a>
+
+<p>Cars are driving (very quickly) over a single-lane bridge.
+They cannot pass each other on the bridge.
+The buttons set the number of cars moving in each direction.
+The default is to have two red cars going east and two blue cars going west.
+As you see, the drivers are not as careful as they should be!</p>
+
+<table><tr><td>
+<img src="screenshots/bridge.png"/>
+</td></tr></table>
+
+<p>We want to offer three policies for accessing the bridge.
+The default does not provide any safety for cars.
+Modify the class skeletons <code>SafeBridge</code> 
+and <code>FairBridge</code> so that they provide respectively safe 
+and fair policies for crossing the bridge.</p>
+
+<p>The safe policy should ensure that there are never two cars going towards
+each other on the bridge.  This solution, however, may freeze out oncoming traffic.
+If there are many red cars (set the number of cars to three), then the safe solution
+might prevent blue cars from getting on the bridge.</p>
+
+<table><tr><td>
+<img src="screenshots/safeBridge.png"/>
+</td></tr></table>
+
+<p><i>Hint for safety:</i></p>
+<table><tr><td><p><font color="white">
+Keep track of the numbers of red and blue cars on the bridge.
+</font></p></td></tr></table>
+
+<p>The fair solution should guarantee that every waiting car eventually gets
+to cross the bridge.</p>
+
+<table><tr><td>
+<img src="screenshots/fairBridge.png"/>
+</td></tr></table>
+
+<p><i>Hint for fairness:</i></p>
+<table><tr><td><p><font color="white">
+Keep track of numbers of waiting cars and whose turn it is.
+</font></p></td></tr></table>
+
+<p><i>Warning:</i> due to much repainting of the scenery, the buttons may not 
+react very quickly.</p>
+
+<!-- GOLFCLUB --------------------------------------------- -->
+<a name="GOLFCLUB">
+<h1>Exercise 8: Golf Ball Allocation Monitor (1 Bonus Point)</h1>
+</a>
+
+<p>At a golf club, players can hire golf balls for their game from the club and 
+return them to the club after use. The better players, who tend not to lose 
+any balls, only hire one or two. The less experienced players hire more balls, 
+so that they will have spares during the game in case of loss. They are, however, 
+required to buy replacements for the lost balls so that they return the same 
+number that they originally hired. The golf balls are kept by the club groundsman, 
+who turns out to be a techie. He decides to treat the players as Java threads 
+and to write a monitor to allocate golfballs to players, if available, or to 
+delay the players if insufficient are available. </p>
+
+<p> However, with our simple allocation policy, it is possible that 
+a player with many balls may starve. Try two players with 4 and 5 balls, then 
+make many players with one and two balls. As you see, the (later) players with 
+few balls get served, whereas the (early) players that need many balls are not 
+served. </p>
+
+<table><tr><td>
+<img src="screenshots/golfclub.png"/>
+</td></tr></table>
+
+<p>You should subclass the <code>GolfClub</code> class and overwrite 
+the template method <code>buildAllocator</code> so that the club uses different 
+allocation policies. Implement a fair policy (e.g. <code>FairAllocator</code>) that 
+does not allow players to starve. Allocators must implement the interface <code>IAllocator</code>. 
+</p>
+
+<p><i>Hint:</i></p>
+<table><tr><td><p><font color="white">
+A simple fair solution would be: 'first come, first served'.
+</font></p></td></tr></table>
+
+<div id=lastModified>$Date: 2006/02/02 08:40:54 $</div>
+</div>
+
+</body>
+</html>
